@@ -8,13 +8,15 @@ class GoogleImageSpider(scrapy.Spider):
 
     def __init__(self, key="eyes", max_count=100):
         self.key = key.replace(" ", "+")
-        self.ijn = 0
         self.cur_count = 0
         self.max_count = int(max_count)
-        self.start_urls = [
-                "https://www.google.com/search?q={0}&tbm=isch&ijn={1}&start={2}".format(self.key, self.ijn, self.ijn*100),
-                ]
-    
+        self.start = 0
+        self.start_urls = [self.createQuery(self.key, self.start)]
+
+    def createQuery(self, key, start):
+        link = "https://www.google.com/search?q={0}&tbm=isch&ijn=0&start={1}".format(key, start)
+        return link
+
     def parse(self, response):
         item = ImageItem()
         item['image_urls'] = response.xpath('//img/@data-src').extract()[:self.max_count - self.cur_count]
@@ -25,5 +27,5 @@ class GoogleImageSpider(scrapy.Spider):
         self.cur_count = self.cur_count + c
         yield item
         if self.cur_count < self.max_count:
-            self.ijn = self.ijn + 1
-            yield scrapy.Request("https://www.google.com/search?q={0}&tbm=isch&ijn={1}&start={2}".format(self.key, self.ijn, self.ijn*100))
+            self.start = self.start + c
+            yield scrapy.Request(self.createQuery(self.key, self.start))
