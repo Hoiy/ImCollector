@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+docker build -t imcollector .
+docker run -v $(pwd)/imgs:/scrapy/ImStore/full imcollector bash -c "scrapy crawl google -L INFO -a max_count=100 -a \"key=$1\""
+
